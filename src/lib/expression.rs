@@ -16,13 +16,7 @@ impl Expression {
             static ref EXPRESSION_REGEX: Regex = Regex::new("^(.+?) (.*)$").unwrap();
         }
 
-        let mut expression = expression.trim().to_string();
-        let first = expression.chars().nth(0).unwrap();
-        let last = expression.chars().last().unwrap();
-        if first == '(' && last == ')' {
-            expression.remove(expression.len() - 1);
-            expression.remove(0);
-        }
+        let expression = Expression::remove_outer_brackets(expression.to_string());
 
         if let Some(capture) = LITERAL_REGEX.captures(&expression) {
             let val = capture[1].parse().unwrap();
@@ -81,16 +75,18 @@ impl Expression {
     }
 
     fn parse_append_expr<'a>(curr_expr: &'a mut String, res: &'a mut Vec<Expression>, data_store: &mut DataStore) {
-        let mut curr_expr = curr_expr.trim().to_string();
-        let first = curr_expr.chars().nth(0).unwrap();
-        let last = curr_expr.chars().last().unwrap();
-        if first == '(' && last == ')' {
-            curr_expr.remove(curr_expr.len() - 1);
-            curr_expr.remove(0);
-        }
-        let curr_expr = curr_expr.trim();
-        let expr = Expression::parse(&curr_expr.to_string(), data_store)
-            .unwrap();
+        let expr = Expression::parse(&curr_expr, data_store).unwrap();
         res.push(expr);
+    }
+
+    fn remove_outer_brackets(expr: String) -> String {
+        let mut expr = expr.trim().to_string();
+        let first = expr.chars().nth(0).unwrap();
+        let last = expr.chars().last().unwrap();
+        if first == '(' && last == ')' {
+            expr.remove(expr.len() - 1);
+            expr.remove(0);
+        }
+        expr.trim().to_string()
     }
 }

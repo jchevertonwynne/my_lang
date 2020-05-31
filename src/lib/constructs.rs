@@ -12,7 +12,7 @@ impl Construct {
     pub fn parse(construct: &String, data_store: &mut DataStore) -> Option<Construct> {
         lazy_static! {
             static ref IF_REGEX: Regex = Regex::new(r"^if (.+) \{$").unwrap();
-            static ref WHILE_REGEX: Regex = Regex::new(r"^while \((.+)\)|(.+) \{$").unwrap();
+            static ref WHILE_REGEX: Regex = Regex::new(r"^while (.+) \{$").unwrap();
             static ref FOR_REGEX: Regex = Regex::new(r"^for ([a-z]+) (.*) \{$").unwrap();
         }
 
@@ -21,7 +21,6 @@ impl Construct {
             Some(Construct::If(expression))
         }
         else if let Some(capture) = WHILE_REGEX.captures(&construct) {
-            println!("founnd a while: {}, {}", construct, capture[1].to_string());
             let expression = Expression::parse(&capture[1].to_string(), data_store).unwrap();
             Some(Construct::While(expression))
         }
