@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
-pub struct DataStore {
-    vars: HashMap<String, i64>,
-    levels: Vec<HashSet<String>>,
+pub struct DataStore<'a> {
+    vars: HashMap<&'a str, i64>,
+    levels: Vec<HashSet<&'a str>>,
 }
 
-impl DataStore {
-    pub fn new() -> DataStore {
+impl <'a> DataStore<'a> {
+    pub fn new() -> DataStore<'a> {
         DataStore {
             vars: HashMap::new(),
             levels: vec![],
@@ -25,15 +25,15 @@ impl DataStore {
         }
     }
 
-    pub fn put(&mut self, var: String, val: i64) {
+    pub fn put(&mut self, var: &'a str, val: i64) {
         let l = self.levels.len();
         if !self.vars.contains_key(&var) {
-            self.levels[l - 1].insert(var.to_string());
+            self.levels[l - 1].insert(var);
         }
         self.vars.insert(var, val);
     }
 
-    pub fn get(&mut self, var: &String) -> Option<&i64> {
+    pub fn get(&mut self, var: &'a str) -> Option<&i64> {
         self.vars.get(var)
     }
 

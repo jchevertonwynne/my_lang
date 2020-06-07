@@ -3,22 +3,19 @@ use regex::Regex;
 use crate::lib::{BuiltIns, DataStore};
 
 #[derive(Debug)]
-pub enum Expression {
+pub enum Expression<'a> {
     Literal(i64),
-    Variable(String),
-    Operation(Box<BuiltIns>),
+    Variable(&'a str),
+    Operation(Box<BuiltIns<'a>>),
 }
 
-impl Expression {
-    pub fn parse(expression: &String) -> Option<Expression> {
-        lazy_static! {
-            static ref LITERAL_REGEX: Regex = Regex::new(r"^(-?\d+)$").unwrap();
-            static ref EXPRESSION_REGEX: Regex = Regex::new("^(.+?) (.*)$").unwrap();
-        }
+impl <'a> Expression<'a> {
+    pub fn parse(expression: &'a str) -> Option<Expression<'a>> {
+        let literal_regex = Regex::new(r"^(-?\d+)$").unwrap();
 
-        let expression = Expression::remove_outer_brackets(expression.to_string());
+        let expression = Expression::remove_outer_brackets(expression);
 
-        if let Some(capture) = LITERAL_REGEX.captures(&expression) {
+        if let Some(capture) = literal_regex.captures(&expression) {
             let val = capture[1].parse().unwrap();
             Some(Expression::Literal(val))
         }
@@ -26,11 +23,11 @@ impl Expression {
             Some(Expression::Operation(Box::from(built_in)))
         }
         else {
-            Some(Expression::Variable(expression.to_string()))
+            Some(Expression::Variable(expression))
         }
     }
 
-    pub fn evaluate(&self, data_store: &mut DataStore) -> Option<i64> {
+    pub fn evaluate(&self, data_store: &mut DataStore<'a>) -> Option<i64> {
         match self {
             Expression::Literal(val) => Some(*val),
             Expression::Variable(expr) => Some(*data_store.get(expr).unwrap()),
@@ -38,46 +35,49 @@ impl Expression {
         }
     }
 
-    pub fn evaluate_arguments(args: &str) -> Vec<Expression> {
+    pub fn evaluate_arguments(args: &'a str) -> Vec<Expression<'a>> {
         let mut res: Vec<Expression> = vec![];
         let mut brackets = 0;
-        let mut curr_expr = String::new();
+        let mut start = 0;
+        let mut end = 0;
 
-        for char in args.chars() {
-            curr_expr.push(char);
-            match char {
-                '(' => brackets += 1,
-                ')' => brackets -= 1,
-                ' ' => {
+        const OPEN_BRACKET: u8 = 40;
+        const CLOSE_BRACKET: u8 = 41;
+        const SPACE: u8 = 32;
+
+        while end < args.len() {
+            match args.as_bytes()[end] {
+                OPEN_BRACKET => brackets += 1,
+                CLOSE_BRACKET => brackets -= 1,
+                SPACE => {
                     if brackets == 0 {
-                        Expression::parse_append_expr(&mut curr_expr, &mut res);
-                        curr_expr = String::new();
+                        let expr = Expression::parse(&args[start..end]).unwrap();
+                        res.push(expr);
+                        start = end;
                     }
                 }
                 _ => (),
             }
+            end += 1;
         }
 
-        if curr_expr.len() > 0 {
-            Expression::parse_append_expr(&mut curr_expr, &mut res);
+        if end - start > 0 {
+            let expr = Expression::parse(&args[start..end]).unwrap();
+            res.push(expr);
         }
 
         res
     }
 
-    fn parse_append_expr<'a>(curr_expr: &'a mut String, res: &'a mut Vec<Expression>) {
-        let expr = Expression::parse(&curr_expr).unwrap();
-        res.push(expr);
-    }
-
-    fn remove_outer_brackets(expr: String) -> String {
-        let mut expr = expr.trim().to_string();
+    fn remove_outer_brackets(expr: &'a str) -> &'a str {
+        let mut expr = expr.trim();
         let first = expr.chars().nth(0).unwrap();
         let last = expr.chars().last().unwrap();
         if first == '(' && last == ')' {
-            expr.remove(expr.len() - 1);
-            expr.remove(0);
+            expr = &expr[1..expr.len() - 1];
+            return expr.trim()
         }
-        expr.trim().to_string()
+
+        expr.trim()
     }
 }

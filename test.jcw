@@ -1,5 +1,7 @@
 z: 0
-while < z 10 {
-    print z
-    z: + z 3
+for x 0 1000 {
+    for y 0 1000 {
+        z: + z y
+    }
 }
+print z

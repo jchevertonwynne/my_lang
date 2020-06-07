@@ -1,26 +1,26 @@
 use crate::lib::{DataStore, Expression};
 
 #[derive(Debug)]
-pub enum BuiltIns {
-    Add(Expression, Expression),
-    Sub(Expression, Expression),
-    Mul(Expression, Expression),
-    Div(Expression, Expression),
-    Mod(Expression, Expression),
-    Eq(Expression, Expression),
-    Neq(Expression, Expression),
-    Lt(Expression, Expression),
-    Gt(Expression, Expression),
-    Not(Expression),
-    Print(Expression),
+pub enum BuiltIns<'a> {
+    Add(Expression<'a>, Expression<'a>),
+    Sub(Expression<'a>, Expression<'a>),
+    Mul(Expression<'a>, Expression<'a>),
+    Div(Expression<'a>, Expression<'a>),
+    Mod(Expression<'a>, Expression<'a>),
+    Eq(Expression<'a>, Expression<'a>),
+    Neq(Expression<'a>, Expression<'a>),
+    Lt(Expression<'a>, Expression<'a>),
+    Gt(Expression<'a>, Expression<'a>),
+    Not(Expression<'a>),
+    Print(Expression<'a>),
 }
 
-impl BuiltIns {
-    pub fn get_function(line: &String) -> Option<BuiltIns> {
+impl <'a> BuiltIns<'a> {
+    pub fn get_function(line: &'a str) -> Option<BuiltIns<'a>> {
         if let Some(space) = line.find(" ") {
             let (func, args) = line.split_at(space);
             let args = args.trim();
-            let mut args = Expression::evaluate_arguments(&args);
+            let mut args = Expression::evaluate_arguments(args);
             match func {
                 "+" => match args.len() {
                     2 => {
@@ -108,7 +108,7 @@ impl BuiltIns {
         None
     }
 
-    pub fn apply(&self, data_store: &mut DataStore) -> Option<i64> {
+    pub fn apply(&self, data_store: &mut DataStore<'a>) -> Option<i64> {
         match self {
             BuiltIns::Add(i, j) => {
                 let i = i.evaluate(data_store).unwrap();
