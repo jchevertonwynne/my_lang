@@ -1,106 +1,123 @@
-use crate::lib::{Expression, DataStore};
+use crate::lib::{DataStore, Expression};
 
 pub enum BuiltIns {
-    Add(i64, i64),
-    Sub(i64, i64),
-    Mul(i64, i64),
-    Div(i64, i64),
-    Eq(i64, i64),
-    Neq(i64, i64),
-    Not(i64),
-    Print(i64)
+    Add(Expression, Expression),
+    Sub(Expression, Expression),
+    Mul(Expression, Expression),
+    Div(Expression, Expression),
+    Eq(Expression, Expression),
+    Neq(Expression, Expression),
+    Not(Expression),
+    Print(Expression),
 }
 
 impl BuiltIns {
-    pub fn get_function(line: &str, args: &Vec<Expression>, data_store: &mut DataStore) -> Option<BuiltIns> {
-        match line {
-            "+" => {
-                match args.len() {
+    pub fn get_function(line: &String) -> Option<BuiltIns> {
+        if let Some(space) = line.find(" ") {
+            let (func, args) = line.split_at(space);
+            let args = args.trim();
+            let mut args = Expression::evaluate_arguments(&args);
+            match func {
+                "+" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Add(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Add(a, b))
                     }
-                    _ => panic!("invalid add statement")
-                }
-            }
-            "-" => {
-                match args.len() {
+                    _ => panic!("invalid add statement"),
+                },
+                "-" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Sub(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Sub(a, b))
                     }
-                    _ => panic!("invalid subtract statement")
-                }
-            }
-            "/" => {
-                match args.len() {
+                    _ => panic!("invalid subtract statement"),
+                },
+                "/" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Div(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Div(a, b))
                     }
-                    _ => panic!("invalid divide statement")
-                }
-            }
-            "*" => {
-                match args.len() {
+                    _ => panic!("invalid divide statement"),
+                },
+                "*" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Mul(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Mul(a, b))
                     }
-                    _ => panic!("invalid multiply statement")
-                }
-            }
-            "==" => {
-                match args.len() {
+                    _ => panic!("invalid multiply statement"),
+                },
+                "==" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Eq(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Eq(a, b))
                     }
-                    _ => panic!("invalid equals statement")
-                }
-            }
-            "!=" => {
-                match args.len() {
+                    _ => panic!("invalid equals statement"),
+                },
+                "!=" => match args.len() {
                     2 => {
-                        let a = Expression::evaluate(&args[0], data_store).unwrap();
-                        let b = Expression::evaluate(&args[1], data_store).unwrap();
-                        Some(BuiltIns::Neq(a, b))
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Neq(a, b))
                     }
-                    _ => panic!("invalid not equals statement")
-                }
+                    _ => panic!("invalid not equals statement"),
+                },
+                "!" => match args.len() {
+                    1 => return Some(BuiltIns::Not(args.remove(0))),
+                    _ => panic!("invalid not statement"),
+                },
+                "print" => match args.len() {
+                    1 => return Some(BuiltIns::Print(args.remove(0))),
+                    _ => panic!("invalid print statement"),
+                },
+                _ => return None,
             }
-            "!" => {
-                match args.len() {
-                    1 => Some(BuiltIns::Not(Expression::evaluate(&args[0], data_store).unwrap())),
-                    _ => panic!("invalid not statement")
-                }
-            }
-            "print" => {
-                match args.len() {
-                    1 => Some(BuiltIns::Print(Expression::evaluate(&args[0], data_store).unwrap())),
-                    _ => panic!("invalid print statement")
-                }
-            }
-            _ => None
         }
+        None
     }
 
-    pub fn apply(&self) -> Option<i64> {
+    pub fn apply(&self, data_store: &mut DataStore) -> Option<i64> {
         match self {
-            BuiltIns::Add(i, j) => Some(i + j),
-            BuiltIns::Div(i, j) => Some(i / j),
-            BuiltIns::Mul(i, j) => Some(i * j),
-            BuiltIns::Sub(i, j) => Some(i - j),
-            BuiltIns::Eq(i, j) => Some(if i == j { 1 } else { 0 }),
-            BuiltIns::Neq(i, j) => Some(if i == j { 0 } else { 1 }),
-            BuiltIns::Not(i) => Some(if *i != 0 { 1 } else { 0 }),
+            BuiltIns::Add(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(i + j)
+            },
+            BuiltIns::Div(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(i / j)
+            },
+            BuiltIns::Mul(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(i * j)
+            },
+            BuiltIns::Sub(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(i - j)
+            },
+            BuiltIns::Eq(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(if i == j { 1 } else { 0 })
+            },
+            BuiltIns::Neq(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(if i == j { 0 } else { 1 })
+            },
+            BuiltIns::Not(i) => {
+                let i = i.evaluate(data_store).unwrap();
+                Some(if i != 0 { 1 } else { 0 })
+            },
             BuiltIns::Print(i) => {
-                println!("{}", i);
+                println!("{}", i.evaluate(data_store).unwrap());
                 None
             }
         }

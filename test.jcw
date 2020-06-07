@@ -1,7 +1,7 @@
-y: 3
-z: y
+y: 0
+z: (+ y 10)
 
-while (!= y (* z 2)) {
-    print y
-    y: + y 1
+
+for x y z {
+    print x
 }

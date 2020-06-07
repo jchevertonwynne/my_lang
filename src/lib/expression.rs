@@ -2,17 +2,16 @@ use regex::Regex;
 
 use crate::lib::{BuiltIns, DataStore};
 
-#[derive(Debug)]
 pub enum Expression {
     Literal(i64),
     Variable(String),
-    Operation(String, Vec<Expression>)
+    Operation(Box<BuiltIns>),
 }
 
 impl Expression {
-    pub fn parse(expression: &String, data_store: &mut DataStore) -> Option<Expression> {
+    pub fn parse(expression: &String) -> Option<Expression> {
         lazy_static! {
-            static ref LITERAL_REGEX: Regex = Regex::new(r"^(\d+)$").unwrap();
+            static ref LITERAL_REGEX: Regex = Regex::new(r"^(-?\d+)$").unwrap();
             static ref EXPRESSION_REGEX: Regex = Regex::new("^(.+?) (.*)$").unwrap();
         }
 
@@ -22,16 +21,11 @@ impl Expression {
             let val = capture[1].parse().unwrap();
             Some(Expression::Literal(val))
         }
-        else if let Some(_) =  data_store.get(&expression) {
-            Some(Expression::Variable(expression.to_string()))
-        }
-        else if let Some(capture) = EXPRESSION_REGEX.captures(&expression) {
-            let func = capture[1].to_string();
-            let args = Expression::evaluate_arguments(&capture[2], data_store);
-            Some(Expression::Operation(func, args))
+        else if let Some(built_in) = BuiltIns::get_function(&expression) {
+            Some(Expression::Operation(Box::from(built_in)))
         }
         else {
-            None
+            Some(Expression::Variable(expression.to_string()))
         }
     }
 
@@ -39,15 +33,11 @@ impl Expression {
         match self {
             Expression::Literal(val) => Some(*val),
             Expression::Variable(expr) => Some(*data_store.get(expr).unwrap()),
-            Expression::Operation(operation, expressions) => {
-                BuiltIns::get_function(operation, expressions, data_store)
-                    .unwrap()
-                    .apply()
-            }
+            Expression::Operation(op) => op.apply(data_store)
         }
     }
 
-    pub fn evaluate_arguments(args: &str, data_store: &mut DataStore) -> Vec<Expression> {
+    pub fn evaluate_arguments(args: &str) -> Vec<Expression> {
         let mut res: Vec<Expression> = vec![];
         let mut brackets = 0;
         let mut curr_expr = String::new();
@@ -59,23 +49,23 @@ impl Expression {
                 ')' => brackets -= 1,
                 ' ' => {
                     if brackets == 0 {
-                        Expression::parse_append_expr(&mut curr_expr, &mut res, data_store);
+                        Expression::parse_append_expr(&mut curr_expr, &mut res);
                         curr_expr = String::new();
                     }
                 }
-                _ => ()
+                _ => (),
             }
         }
 
         if curr_expr.len() > 0 {
-            Expression::parse_append_expr(&mut curr_expr, &mut res, data_store);
+            Expression::parse_append_expr(&mut curr_expr, &mut res);
         }
 
         res
     }
 
-    fn parse_append_expr<'a>(curr_expr: &'a mut String, res: &'a mut Vec<Expression>, data_store: &mut DataStore) {
-        let expr = Expression::parse(&curr_expr, data_store).unwrap();
+    fn parse_append_expr<'a>(curr_expr: &'a mut String, res: &'a mut Vec<Expression>) {
+        let expr = Expression::parse(&curr_expr).unwrap();
         res.push(expr);
     }
 

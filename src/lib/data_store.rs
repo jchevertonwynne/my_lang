@@ -2,14 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 pub struct DataStore {
     vars: HashMap<String, i64>,
-    levels: Vec<HashSet<String>>
+    levels: Vec<HashSet<String>>,
 }
 
 impl DataStore {
     pub fn new() -> DataStore {
-        DataStore{
+        DataStore {
             vars: HashMap::new(),
-            levels: vec![]
+            levels: vec![],
         }
     }
 
