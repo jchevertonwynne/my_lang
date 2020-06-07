@@ -1,16 +1,16 @@
 use std::fs;
 
-use crate::lib::{DataStore, Program};
+use crate::lib::Program;
 
 mod lib;
 
 fn main() {
-    let f = fs::read_to_string("test.jcw").unwrap();
-
-    let lines= f.lines();
-    let lines: Vec<&str> = lines.map(str::trim).collect();
-    let program = Program::from_lines(&mut lines.iter());
-
-    let mut data_store = DataStore::new();
-    program.run(&mut data_store);
+    let program_text = fs::read_to_string("test.jcw").unwrap();
+    let program_lines = program_text.lines();
+    let program_lines: Vec<&str> = program_lines
+        .map(str::trim)
+        .collect();
+    let program = Program::from_lines(&mut program_lines.iter());
+    // println!("{:?}", program);
+    program.start();
 }

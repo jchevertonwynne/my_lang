@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+#[derive(Debug)]
 pub struct DataStore<'a> {
     vars: HashMap<&'a str, i64>,
     levels: Vec<HashSet<&'a str>>,
