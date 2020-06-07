@@ -1,12 +1,16 @@
 use crate::lib::{DataStore, Expression};
 
+#[derive(Debug)]
 pub enum BuiltIns {
     Add(Expression, Expression),
     Sub(Expression, Expression),
     Mul(Expression, Expression),
     Div(Expression, Expression),
+    Mod(Expression, Expression),
     Eq(Expression, Expression),
     Neq(Expression, Expression),
+    Lt(Expression, Expression),
+    Gt(Expression, Expression),
     Not(Expression),
     Print(Expression),
 }
@@ -50,6 +54,14 @@ impl BuiltIns {
                     }
                     _ => panic!("invalid multiply statement"),
                 },
+                "%" => match args.len() {
+                    2 => {
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Mod(a, b))
+                    }
+                    _ => panic!("invalid multiply statement"),
+                },
                 "==" => match args.len() {
                     2 => {
                         let a = args.remove(0);
@@ -63,6 +75,22 @@ impl BuiltIns {
                         let a = args.remove(0);
                         let b = args.remove(0);
                         return Some(BuiltIns::Neq(a, b))
+                    }
+                    _ => panic!("invalid not equals statement"),
+                },
+                ">" => match args.len() {
+                    2 => {
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Gt(a, b))
+                    }
+                    _ => panic!("invalid not equals statement"),
+                },
+                "<" => match args.len() {
+                    2 => {
+                        let a = args.remove(0);
+                        let b = args.remove(0);
+                        return Some(BuiltIns::Lt(a, b))
                     }
                     _ => panic!("invalid not equals statement"),
                 },
@@ -102,6 +130,11 @@ impl BuiltIns {
                 let j = j.evaluate(data_store).unwrap();
                 Some(i - j)
             },
+            BuiltIns::Mod(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(i % j)
+            },
             BuiltIns::Eq(i, j) => {
                 let i = i.evaluate(data_store).unwrap();
                 let j = j.evaluate(data_store).unwrap();
@@ -111,6 +144,16 @@ impl BuiltIns {
                 let i = i.evaluate(data_store).unwrap();
                 let j = j.evaluate(data_store).unwrap();
                 Some(if i == j { 0 } else { 1 })
+            },
+            BuiltIns::Gt(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(if i > j { 1 } else { 0 })
+            },
+            BuiltIns::Lt(i, j) => {
+                let i = i.evaluate(data_store).unwrap();
+                let j = j.evaluate(data_store).unwrap();
+                Some(if i < j { 1 } else { 0 })
             },
             BuiltIns::Not(i) => {
                 let i = i.evaluate(data_store).unwrap();

@@ -1,20 +1,38 @@
 use regex::Regex;
 use core::slice::Iter;
 
-use crate::lib::{Line, DataStore, Expression, Construct};
+use crate::lib::{DataStore, Expression, Construct};
+use std::str::FromStr;
 
+#[derive(Debug)]
+pub enum Line {
+    Assignment(String, Expression),
+    Expression(Expression),
+    Construct(Construct)
+}
+
+#[derive(Debug)]
 pub struct Program {
     pub lines: Vec<Line>
 }
 
+impl FromStr for Program {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let lines: Vec<String> = s.lines().map(str::trim).map(String::from).collect();
+        let mut lines: Iter<String> = lines.iter();
+        Ok(Program::from_lines(&mut lines))
+    }
+}
+
 impl Program {
-    pub fn parse(lines: &Vec<String>) -> Program {
+    pub fn from_lines(lines: &mut Iter<String>) -> Program {
         lazy_static! {
             static ref ASSIGNMENT_REGEX: Regex = Regex::new(r"^([a-z]+): (.+)$").unwrap();
         }
 
         let mut program = vec![];
-        let mut lines: Iter<String> = lines.iter();
 
         while let Some(line) = lines.next() {
             if line.len() == 0 {
@@ -30,18 +48,14 @@ impl Program {
                 let args = captures[2].to_string();
                 let exp = Expression::parse(&args).unwrap();
                 program.push(Line::Assignment(var, exp));
-                // let val = Expression::evaluate(&exp, data_store).unwrap();
-                // data_store.put(var, val);
-            } else if let Some(construct) = Construct::parse(&line.to_string(), &mut lines) {
+            } else if let Some(construct) = Construct::parse(&line.to_string(), lines) {
                 program.push( Line::Construct(construct));
-                // construct.apply(sub_lines, data_store);
             } else if let Some(expression) = Expression::parse(&line.to_string()) {
                 program.push(Line::Expression(expression));
-                // expression.evaluate(data_store);
             }
         }
 
-        Program{
+        Program {
             lines: program
         }
     }

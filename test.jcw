@@ -1,7 +1,5 @@
-y: 0
-z: (+ y 10)
-
-
-for x y z {
-    print x
+z: 0
+while < z 10 {
+    print z
+    z: + z 3
 }

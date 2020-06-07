@@ -2,6 +2,7 @@ use regex::Regex;
 
 use crate::lib::{BuiltIns, DataStore};
 
+#[derive(Debug)]
 pub enum Expression {
     Literal(i64),
     Variable(String),

@@ -8,11 +8,8 @@ mod lib;
 
 fn main() {
     let f = fs::read_to_string("test.jcw").unwrap();
-    let lines = f.lines();
-    let f: Vec<String> = lines.map(str::trim).map(String::from).collect();
+    let program = f.parse::<Program>().unwrap();
 
     let mut data_store = DataStore::new();
-
-    let program = Program::parse(&f);
     program.run(&mut data_store);
 }

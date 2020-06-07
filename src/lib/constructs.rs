@@ -3,6 +3,7 @@ use core::slice::Iter;
 
 use crate::lib::{DataStore, Expression, Program};
 
+#[derive(Debug)]
 pub enum Construct {
     If(Expression, Program),
     While(Expression, Program),
@@ -19,11 +20,13 @@ impl Construct {
 
         if let Some(capture) = IF_REGEX.captures(&construct) {
             let expression = Expression::parse(&capture[1].to_string()).unwrap();
-            let sub = Program::parse(&get_sub_program(lines));
+            let sub_lines = get_sub_program(lines);
+            let sub = Program::from_lines(&mut sub_lines.iter());
             Some(Construct::If(expression, sub))
         } else if let Some(capture) = WHILE_REGEX.captures(&construct) {
             let expression = Expression::parse(&capture[1].to_string()).unwrap();
-            let sub = Program::parse(&get_sub_program(lines));
+            let sub_lines = get_sub_program(lines);
+            let sub = Program::from_lines(&mut sub_lines.iter());
             Some(Construct::While(expression, sub))
         } else if let Some(capture) = FOR_REGEX.captures(&construct) {
             let iterating = capture[1].to_string();
@@ -32,7 +35,8 @@ impl Construct {
                 2 => {
                     let start = args.remove(0);
                     let end = args.remove(0);
-                    let sub = Program::parse(&get_sub_program(lines));
+                    let sub_lines = get_sub_program(lines);
+                    let sub = Program::from_lines(&mut sub_lines.iter());
                     Some(Construct::For(iterating, start, end, sub))
                 }
                 _ => panic!("invalid for loop \"{}\"", construct),
