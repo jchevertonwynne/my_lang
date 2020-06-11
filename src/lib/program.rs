@@ -52,6 +52,7 @@ impl<'a> Program<'a> {
                     code,
                     args,
                 };
+                println!("added user func: \"{}\"", fn_name);
                 user_fns.insert(fn_name, u_func);
             } else if let Some(expression) = Expression::parse(line, &user_fns) {
                 program.push(Line::Expression(expression));
@@ -71,7 +72,7 @@ impl<'a> Program<'a> {
     pub fn run_with(&self, data_store: &mut DataStore<'a>) {
         data_store.expand();
         for line in self.program.iter() {
-            match &line {
+            match line {
                 Line::Assignment(var, exp) => {
                     let val = exp.evaluate(data_store, &self.user_fns).unwrap();
                     data_store.put(var, val);

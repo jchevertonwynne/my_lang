@@ -11,6 +11,6 @@ fn main() {
         .map(str::trim)
         .collect();
     let program = Program::from_lines(&mut program_lines.iter());
-    // println!("{:?}", program);
+    println!("{:?}", program);
     program.start();
 }

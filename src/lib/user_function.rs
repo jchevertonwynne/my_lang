@@ -8,12 +8,12 @@ pub struct UserFunction<'a> {
 }
 
 impl<'a> UserFunction<'a> {
-    pub fn apply(&self, vars: &Vec<Expression<'a>>, data_store: &mut DataStore<'a>, user_funcs: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
+    pub fn apply(&self, vars: &Vec<Expression<'a>>, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
         data_store.expand();
         data_store.put("res", 0);
         self.args.iter().zip(vars)
             .for_each(|(k, v)| {
-                let val = v.evaluate(data_store, user_funcs).unwrap();
+                let val = v.evaluate(data_store, user_fns).unwrap();
                 data_store.put(k, val);
             });
         self.code.run_with(data_store);

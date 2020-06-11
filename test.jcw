@@ -1,6 +1,14 @@
-func multiply (a b) {
-    res: 1
-    res: * a b
+func collatz (n) {
+    rem: % n 2
+    if (== 0 rem) {
+        res: / n 2
+    }
+    if (== 1 rem) {
+        res: + 1 (* n 3)
+    }
 }
 
-print (multiply 2 3)
+for x 1 10 {
+    res: collatz x
+    print res
+}

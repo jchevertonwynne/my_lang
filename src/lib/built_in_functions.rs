@@ -20,11 +20,11 @@ pub enum BuiltIns<'a> {
 }
 
 impl<'a> BuiltIns<'a> {
-    pub fn get_function(line: &'a str, user_funcs: &HashMap<&'a str, UserFunction<'a>>) -> Option<BuiltIns<'a>> {
+    pub fn get_function(line: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<BuiltIns<'a>> {
         if let Some(space) = line.find(" ") {
             let (func, args) = line.split_at(space);
             let args = args.trim();
-            let mut args = Expression::evaluate_arguments(args, user_funcs);
+            let mut args = Expression::evaluate_arguments(args, user_fns);
             match func {
                 "+" => match args.len() {
                     2 => {

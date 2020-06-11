@@ -8,12 +8,12 @@ use std::collections::HashMap;
 pub enum Expression<'a> {
     Literal(i64),
     Variable(&'a str),
-    Operation(Box<BuiltIns<'a>>),
-    UserOperation(&'a str, Vec<Expression<'a>>)
+    BuiltInFunction(Box<BuiltIns<'a>>),
+    UserFunction(&'a str, Vec<Expression<'a>>)
 }
 
 impl<'a> Expression<'a> {
-    pub fn parse(expression: &'a str, user_funcs: &HashMap<&'a str, UserFunction<'a>>) -> Option<Expression<'a>> {
+    pub fn parse(expression: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<Expression<'a>> {
         let literal_regex = Regex::new(r"^(-?\d+)$").unwrap();
 
         let expression = Expression::remove_outer_brackets(expression);
@@ -21,13 +21,13 @@ impl<'a> Expression<'a> {
         if let Some(capture) = literal_regex.captures(&expression) {
             let val = capture[1].parse().unwrap();
             Some(Expression::Literal(val))
-        } else if let Some(built_in) = BuiltIns::get_function(&expression, user_funcs) {
-            Some(Expression::Operation(Box::from(built_in)))
-        } else if let Some(user_func) = is_user_function_call(expression, user_funcs) {
+        } else if let Some(built_in) = BuiltIns::get_function(&expression, user_fns) {
+            Some(Expression::BuiltInFunction(Box::from(built_in)))
+        } else if let Some(user_fn) = is_user_function_call(expression, user_fns) {
             let space_index = expression.find(" ").unwrap();
             let args = expression[space_index..].trim();
-            let args = Expression::evaluate_arguments(args, user_funcs);
-            Some(Expression::UserOperation(user_func, args))
+            let args = Expression::evaluate_arguments(args, user_fns);
+            Some(Expression::UserFunction(user_fn, args))
         } else {
             Some(Expression::Variable(expression))
         }
@@ -35,13 +35,14 @@ impl<'a> Expression<'a> {
 
     pub fn evaluate(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
         match self {
-            Expression::Literal(val) => Some(*val),
-            Expression::Variable(var) => {
-                let val = data_store.get(var);
+            Expression::Literal(literal) => Some(*literal),
+            Expression::Variable(variable) => {
+                println!("{}", variable);
+                let val = data_store.get(variable);
                 Some(*val.unwrap())
             }
-            Expression::Operation(op) => op.apply(data_store, user_fns),
-            Expression::UserOperation(func, args) => {
+            Expression::BuiltInFunction(operation) => operation.apply(data_store, user_fns),
+            Expression::UserFunction(func, args) => {
                 let func = user_fns.get(func).unwrap();
                 func.apply(args, data_store, user_fns)
             }
@@ -97,11 +98,11 @@ impl<'a> Expression<'a> {
     }
 }
 
-fn is_user_function_call<'a>(line: &'a str, user_funcs: &HashMap<&'a str, UserFunction<'a>>) -> Option<&'a str> {
+fn is_user_function_call<'a>(line: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<&'a str> {
     match line.find(' ') {
         Some(ind) => {
             let f_name = &line[..ind];
-            for &func_name in user_funcs.keys() {
+            for &func_name in user_fns.keys() {
                 if func_name.eq(f_name) {
                     return Some(func_name)
                 }
