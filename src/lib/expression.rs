@@ -13,6 +13,10 @@ pub enum Expression<'a> {
 }
 
 impl<'a> Expression<'a> {
+    // an exression can be a literal - 1, 3, -4. any valie i64
+    // or a built in func - see built_in_functions.rs
+    // or a user func - as defined by `func func_name (v a r s) {`. must have been declared prior to evaluation of its call
+    // else assumed to be a variable name
     pub fn parse(expression: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<Expression<'a>> {
         let literal_regex = Regex::new(r"^(-?\d+)$").unwrap();
 
@@ -33,6 +37,7 @@ impl<'a> Expression<'a> {
         }
     }
 
+    // take an expression and find its value
     pub fn evaluate(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
         match self {
             Expression::Literal(literal) => Some(*literal),
@@ -49,6 +54,8 @@ impl<'a> Expression<'a> {
         }
     }
 
+    // takes a string and seperates it into its individual expressions. these are then individually parsed
+    // "1 (+ 2 3) 4" => ["1", "(+ 2 3)", "4"]
     pub fn evaluate_arguments(args: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Vec<Expression<'a>> {
         let mut res: Vec<Expression> = vec![];
         let mut brackets = 0;
@@ -77,6 +84,7 @@ impl<'a> Expression<'a> {
             end += 1;
         }
 
+        // something left to do
         if start != end {
             let expr = Expression::parse(&args[start..], user_fns).unwrap();
             res.push(expr);
@@ -85,6 +93,7 @@ impl<'a> Expression<'a> {
         res
     }
 
+    // "(+ 2 3)" becomes "+ 2 3"
     fn remove_outer_brackets(expr: &'a str) -> &'a str {
         let mut expr = expr.trim();
         let first = expr.chars().nth(0).unwrap();
@@ -98,6 +107,7 @@ impl<'a> Expression<'a> {
     }
 }
 
+// checks map of user functions for one by the name of the first word of the line. if it's there, extract its name
 fn is_user_function_call<'a>(line: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<&'a str> {
     match line.find(' ') {
         Some(ind) => {

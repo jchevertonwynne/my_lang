@@ -19,6 +19,7 @@ pub enum BuiltIns<'a> {
     Print(Expression<'a>),
 }
 
+// defines standard math/logic operators and print
 impl<'a> BuiltIns<'a> {
     pub fn get_function(line: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<BuiltIns<'a>> {
         if let Some(space) = line.find(" ") {

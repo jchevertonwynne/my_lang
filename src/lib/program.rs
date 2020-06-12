@@ -32,18 +32,24 @@ impl<'a> Program<'a> {
                 continue;
             }
 
+            // program moves back to outer scope that called it
             if line == "}" {
                 break;
             }
 
+            // an assignment will be of the form `var: EXPRESSION`
             if let Some(captures) = assignment_regex.captures(line) {
                 let var = captures.get(1).unwrap().as_str();
                 let args = captures.get(2).unwrap().as_str();
                 let exp = Expression::parse(args, &user_fns).unwrap();
                 program.push(Line::Assignment(var, exp));
-            } else if let Some(construct) = Construct::parse(line, lines, &user_fns) {
+            } 
+            // check if line matches any of the constucts - if/while/for
+            else if let Some(construct) = Construct::parse(line, lines, &user_fns) {
                 program.push(Line::Construct(construct));
-            } else if let Some(captures) = fn_regex.captures(line) {
+            } 
+            // function declaration of form `func func_name (a r g s) {`
+            else if let Some(captures) = fn_regex.captures(line) {
                 let fn_name = captures.get(1).unwrap().as_str();
                 let code = get_sub_program(lines);
                 let code = Program::from_lines(&mut code.iter());
@@ -54,8 +60,13 @@ impl<'a> Program<'a> {
                 };
                 println!("added user func: \"{}\"", fn_name);
                 user_fns.insert(fn_name, u_func);
-            } else if let Some(expression) = Expression::parse(line, &user_fns) {
+            } 
+            // xpressions can be literals, built in funcs, previously defined user funcs or variables. non-matches are currently assumed to be var names
+            else if let Some(expression) = Expression::parse(line, &user_fns) {
                 program.push(Line::Expression(expression));
+            }
+            else {
+                panic!(format!("unexpected input : \"{}\"", line))
             }
         }
 
@@ -89,6 +100,7 @@ impl<'a> Program<'a> {
     }
 }
 
+// get all following lines from the inner level of indentation (if/while/for/function code)
 pub fn get_sub_program<'a>(lines: &mut Iter<&'a str>) -> Vec<&'a str> {
     let mut res: Vec<&'a str> = vec![];
     let mut brackets = 1;
