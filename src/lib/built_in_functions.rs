@@ -2,7 +2,6 @@ use crate::lib::{DataStore, Expression};
 use std::collections::HashMap;
 use crate::lib::user_function::UserFunction;
 
-#[derive(Debug)]
 pub enum BuiltIns<'a> {
     Add(Expression<'a>, Expression<'a>),
     Sub(Expression<'a>, Expression<'a>),
@@ -22,111 +21,115 @@ pub enum BuiltIns<'a> {
 // defines standard math/logic operators and print
 impl<'a> BuiltIns<'a> {
     pub fn get_function(line: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<BuiltIns<'a>> {
-        if let Some(space) = line.find(" ") {
-            let (func, args) = line.split_at(space);
-            let args = args.trim();
-            let mut args = Expression::evaluate_arguments(args, user_fns);
-            match func {
-                "+" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Add(a, b));
-                    }
-                    _ => panic!("invalid add statement"),
-                },
-                "-" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Sub(a, b));
-                    }
-                    _ => panic!("invalid subtract statement"),
-                },
-                "/" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Div(a, b));
-                    }
-                    _ => panic!("invalid divide statement"),
-                },
-                "*" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Mul(a, b));
-                    }
-                    _ => panic!("invalid multiply statement"),
-                },
-                "%" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Mod(a, b));
-                    }
-                    _ => panic!("invalid multiply statement"),
-                },
-                "==" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Eq(a, b));
-                    }
-                    _ => panic!("invalid equals statement"),
-                },
-                "!=" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Neq(a, b));
-                    }
-                    _ => panic!("invalid not equals statement"),
-                },
-                ">" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Gt(a, b));
-                    }
-                    _ => panic!("invalid not equals statement"),
-                },
-                "<" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Lt(a, b));
-                    }
-                    _ => panic!("invalid not equals statement"),
-                },
-                ">=" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Ge(a, b));
-                    }
-                    _ => panic!("invalid not equals statement"),
-                },
-                "<=" => match args.len() {
-                    2 => {
-                        let a = args.remove(0);
-                        let b = args.remove(0);
-                        return Some(BuiltIns::Le(a, b));
-                    }
-                    _ => panic!("invalid not equals statement"),
-                },
-                "!" => match args.len() {
-                    1 => return Some(BuiltIns::Not(args.remove(0))),
-                    _ => panic!("invalid not statement"),
-                },
-                "print" => return Some(BuiltIns::Print(args)),
-                _ => return None,
+        match line.find(" ") {
+            Some(space) => {
+                let (func, args) = line.split_at(space);
+                let args = args.trim();
+                let mut args = Expression::evaluate_arguments(args, user_fns);
+                match func {
+                    "+" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Add(a, b))
+                        }
+                        _ => panic!("invalid add statement"),
+                    },
+                    "-" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Sub(a, b))
+                        }
+                        _ => panic!("invalid subtract statement"),
+                    },
+                    "/" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Div(a, b))
+                        }
+                        _ => panic!("invalid divide statement"),
+                    },
+                    "*" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Mul(a, b))
+                        }
+                        _ => panic!("invalid multiply statement"),
+                    },
+                    "%" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Mod(a, b))
+                        }
+                        _ => panic!("invalid multiply statement"),
+                    },
+                    "==" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Eq(a, b))
+                        }
+                        _ => panic!("invalid equals statement"),
+                    },
+                    "!=" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Neq(a, b))
+                        }
+                        _ => panic!("invalid not equals statement"),
+                    },
+                    ">" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Gt(a, b))
+                        }
+                        _ => panic!("invalid not equals statement"),
+                    },
+                    "<" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Lt(a, b))
+                        }
+                        _ => panic!("invalid not equals statement"),
+                    },
+                    ">=" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Ge(a, b))
+                        }
+                        _ => panic!("invalid not equals statement"),
+                    },
+                    "<=" => match args.len() {
+                        2 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            Some(BuiltIns::Le(a, b))
+                        }
+                        _ => panic!("invalid not equals statement"),
+                    },
+                    "!" => match args.len() {
+                        1 => Some(BuiltIns::Not(args.remove(0))),
+                        _ => panic!("invalid not statement"),
+                    },
+                    "print" => return Some(BuiltIns::Print(args)),
+                    _ => return None,
+                }
+            },
+            None => {
+                match line {
+                    "print" => Some(BuiltIns::Print(Vec::new())),
+                    _ => None
+                }
             }
         }
-        else if line == "print" {
-            return Some(BuiltIns::Print(Vec::new()))
-        }
-        return None
     }
 
     pub fn apply(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {

@@ -6,16 +6,14 @@ use regex::Regex;
 use crate::lib::{Construct, DataStore, Expression};
 use crate::lib::user_function::UserFunction;
 
-#[derive(Debug)]
 pub enum Line<'a> {
     Assignment(&'a str, Expression<'a>),
     Expression(Expression<'a>),
     Construct(Construct<'a>),
 }
 
-#[derive(Debug)]
 pub struct Program<'a> {
-    pub program: Vec<Line<'a>>,
+    program: Vec<Line<'a>>,
 }
 
 impl<'a> Program<'a> {

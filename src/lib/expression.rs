@@ -4,7 +4,6 @@ use crate::lib::{BuiltIns, DataStore};
 use crate::lib::user_function::UserFunction;
 use std::collections::HashMap;
 
-#[derive(Debug)]
 pub enum Expression<'a> {
     Literal(i64),
     Variable(&'a str),

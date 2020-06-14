@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 // simulates a stack by making 'layers' using a vec. when a layer is removed, its variables are too.
 // if a new var is added, it is added to the top level so the program scopes variables appropriately
-#[derive(Debug)]
 pub struct DataStore<'a> {
     vars: HashMap<&'a str, i64>,
     levels: Vec<HashSet<&'a str>>,

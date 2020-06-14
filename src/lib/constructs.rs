@@ -6,7 +6,6 @@ use crate::lib::{DataStore, Expression, Program, get_sub_program};
 use crate::lib::user_function::UserFunction;
 use std::collections::HashMap;
 
-#[derive(Debug)]
 pub enum Construct<'a> {
     If(Expression<'a>, Program<'a>),
     While(Expression<'a>, Program<'a>),
@@ -18,7 +17,7 @@ impl<'a> Construct<'a> {
     pub fn parse(construct: &'a str, lines: &mut Iter<&'a str>, user_fns: &mut HashMap<&'a str, UserFunction<'a>>) -> Option<Construct<'a>> {
         let if_regex = Regex::new(r"^if (.+) \{$").unwrap();
         let while_regex = Regex::new(r"^while (.+) \{$").unwrap();
-        let for_regex = Regex::new(r"^for ([a-z]+) (.*) \{$").unwrap();
+        let for_regex = Regex::new(r"^for ([a-z_]+) (.*) \{$").unwrap();
 
         // form `if EXPRESSION {`
         if let Some(capture) = if_regex.captures(&construct) {

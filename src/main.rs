@@ -13,9 +13,5 @@ fn main() {
         .collect();
     let mut user_fns = HashMap::new();
     let program = Program::from_lines(&mut program_lines.iter(), &mut user_fns);
-    // println!("{:?}", program.program);
-    for line in &program.program {
-        println!("{:?}", line);
-    }
     program.start(&user_fns);
 }
