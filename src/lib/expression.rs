@@ -13,7 +13,7 @@ pub enum Expression<'a> {
 }
 
 impl<'a> Expression<'a> {
-    // an exression can be a literal - 1, 3, -4. any valie i64
+    // an exression can be a literal - 1, 3, -4. any valid i64
     // or a built in func - see built_in_functions.rs
     // or a user func - as defined by `func func_name (v a r s) {`. must have been declared prior to evaluation of its call
     // else assumed to be a variable name
@@ -42,7 +42,6 @@ impl<'a> Expression<'a> {
         match self {
             Expression::Literal(literal) => Some(*literal),
             Expression::Variable(variable) => {
-                println!("{}", variable);
                 let val = data_store.get(variable);
                 Some(*val.unwrap())
             }
@@ -57,7 +56,7 @@ impl<'a> Expression<'a> {
     // takes a string and seperates it into its individual expressions. these are then individually parsed
     // "1 (+ 2 3) 4" => ["1", "(+ 2 3)", "4"]
     pub fn evaluate_arguments(args: &'a str, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Vec<Expression<'a>> {
-        let mut res: Vec<Expression> = vec![];
+        let mut res: Vec<Expression> = Vec::new();
         let mut brackets = 0;
         let mut start = 0;
         let mut end = 0;

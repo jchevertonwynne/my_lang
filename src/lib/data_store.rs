@@ -12,7 +12,7 @@ impl <'a> DataStore<'a> {
     pub fn new() -> DataStore<'a> {
         DataStore {
             vars: HashMap::new(),
-            levels: vec![],
+            levels: Vec::new(),
         }
     }
 

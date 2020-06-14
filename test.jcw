@@ -8,7 +8,13 @@ func collatz (n) {
     }
 }
 
+func collatz_depth (n) {
+    while != n 1 {
+        n: collatz n
+        res: + res 1
+    }
+}
+
 for x 1 10 {
-    res: collatz x
-    print res
+    print x (collatz_depth x)
 }

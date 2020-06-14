@@ -16,7 +16,7 @@ pub enum BuiltIns<'a> {
     Le(Expression<'a>, Expression<'a>),
     Ge(Expression<'a>, Expression<'a>),
     Not(Expression<'a>),
-    Print(Expression<'a>),
+    Print(Vec<Expression<'a>>),
 }
 
 // defines standard math/logic operators and print
@@ -119,14 +119,14 @@ impl<'a> BuiltIns<'a> {
                     1 => return Some(BuiltIns::Not(args.remove(0))),
                     _ => panic!("invalid not statement"),
                 },
-                "print" => match args.len() {
-                    1 => return Some(BuiltIns::Print(args.remove(0))),
-                    _ => panic!("invalid print statement"),
-                },
+                "print" => return Some(BuiltIns::Print(args)),
                 _ => return None,
             }
         }
-        None
+        else if line == "print" {
+            return Some(BuiltIns::Print(Vec::new()))
+        }
+        return None
     }
 
     pub fn apply(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
@@ -190,8 +190,11 @@ impl<'a> BuiltIns<'a> {
                 let i = i.evaluate(data_store, user_fns).unwrap();
                 Some(if i != 0 { 1 } else { 0 })
             }
-            BuiltIns::Print(i) => {
-                println!("{}", i.evaluate(data_store, user_fns).unwrap());
+            BuiltIns::Print(args) => {
+                let expr_strings: Vec<String> = args.iter()
+                    .map(|v| v.evaluate(data_store, user_fns).unwrap().to_string())
+                    .collect();
+                println!("{}", expr_strings.join(" "));
                 None
             }
         }

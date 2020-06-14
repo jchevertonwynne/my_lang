@@ -23,8 +23,8 @@ impl<'a> UserFunction<'a> {
                 let val = v.evaluate(data_store, user_fns).unwrap();
                 function_data_store.put(k, val);
             });
-        self.code.run_with(&mut function_data_store);
-        let result = *data_store.get("res").unwrap();
+        self.code.run_with(&mut function_data_store, user_fns);
+        let result = *function_data_store.get("res").unwrap();
         Some(result)
     }
 }

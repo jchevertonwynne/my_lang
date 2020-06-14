@@ -15,7 +15,7 @@ pub enum Construct<'a> {
 
 impl<'a> Construct<'a> {
     // check if a line parses as a construct of if/while/for statements. build up the construct if possible, else move on
-    pub fn parse(construct: &'a str, lines: &mut Iter<&'a str>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<Construct<'a>> {
+    pub fn parse(construct: &'a str, lines: &mut Iter<&'a str>, user_fns: &mut HashMap<&'a str, UserFunction<'a>>) -> Option<Construct<'a>> {
         let if_regex = Regex::new(r"^if (.+) \{$").unwrap();
         let while_regex = Regex::new(r"^while (.+) \{$").unwrap();
         let for_regex = Regex::new(r"^for ([a-z]+) (.*) \{$").unwrap();
@@ -25,7 +25,7 @@ impl<'a> Construct<'a> {
             let expression = capture.get(1).unwrap().as_str();
             let expression = Expression::parse(expression, user_fns).unwrap();
             let sub_lines = get_sub_program(lines);
-            let sub = Program::from_lines(&mut sub_lines.iter());
+            let sub = Program::from_lines(&mut sub_lines.iter(), user_fns);
             Some(Construct::If(expression, sub))
         } 
         // form `while EXPRESSION {`
@@ -33,7 +33,7 @@ impl<'a> Construct<'a> {
             let expression = capture.get(1).unwrap().as_str();
             let expression = Expression::parse(expression, user_fns).unwrap();
             let sub_lines = get_sub_program(lines);
-            let sub = Program::from_lines(&mut sub_lines.iter());
+            let sub = Program::from_lines(&mut sub_lines.iter(), user_fns);
             Some(Construct::While(expression, sub))
         } 
         // form `for VAR_NAME EXPRESSION EXPRESSION {`
@@ -46,7 +46,7 @@ impl<'a> Construct<'a> {
                     let start = args.remove(0);
                     let end = args.remove(0);
                     let sub_lines = get_sub_program(lines);
-                    let subprogram = Program::from_lines(&mut sub_lines.iter());
+                    let subprogram = Program::from_lines(&mut sub_lines.iter(), user_fns);
                     Some(Construct::For(iterating, start, end, subprogram))
                 }
                 _ => panic!("invalid for loop \"{}\"", construct),
@@ -61,12 +61,12 @@ impl<'a> Construct<'a> {
         match self {
             Construct::If(expr, sub) => {
                 if Expression::evaluate(expr, data_store, user_fns).unwrap() != 0 {
-                    sub.run_with(data_store);
+                    sub.run_with(data_store, user_fns);
                 }
             }
             Construct::While(expr, sub) => {
                 while Expression::evaluate(expr, data_store, user_fns).unwrap() != 0 {
-                    sub.run_with(data_store);
+                    sub.run_with(data_store, user_fns);
                 }
             }
             // for loop may have a newly declared loop var, so mak data store note that it may 
@@ -77,7 +77,7 @@ impl<'a> Construct<'a> {
                 let end = Expression::evaluate(end, data_store, user_fns).unwrap();
                 for i in start..end {
                     data_store.put(*var, i);
-                    sub.run_with(data_store);
+                    sub.run_with(data_store, user_fns);
                 }
                 data_store.contract();
             }

@@ -1,6 +1,7 @@
 use std::fs;
 
 use crate::lib::Program;
+use std::collections::HashMap;
 
 mod lib;
 
@@ -10,7 +11,11 @@ fn main() {
     let program_lines: Vec<&str> = program_lines
         .map(str::trim)
         .collect();
-    let program = Program::from_lines(&mut program_lines.iter());
-    println!("{:?}", program.user_fns);
-    program.start();
+    let mut user_fns = HashMap::new();
+    let program = Program::from_lines(&mut program_lines.iter(), &mut user_fns);
+    // println!("{:?}", program.program);
+    for line in &program.program {
+        println!("{:?}", line);
+    }
+    program.start(&user_fns);
 }
