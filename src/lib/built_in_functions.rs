@@ -16,6 +16,7 @@ pub enum BuiltIns<'a> {
     Ge(Expression<'a>, Expression<'a>),
     Not(Expression<'a>),
     Print(Vec<Expression<'a>>),
+    Printa(Vec<Expression<'a>>),
 }
 
 // defines standard math/logic operators and print
@@ -120,12 +121,14 @@ impl<'a> BuiltIns<'a> {
                         _ => panic!("invalid not statement"),
                     },
                     "print" => return Some(BuiltIns::Print(args)),
+                    "printa" => return Some(BuiltIns::Printa(args)),
                     _ => return None,
                 }
             },
             None => {
                 match line {
                     "print" => Some(BuiltIns::Print(Vec::new())),
+                    "printa" => Some(BuiltIns::Printa(Vec::new())),
                     _ => None
                 }
             }
@@ -198,6 +201,13 @@ impl<'a> BuiltIns<'a> {
                     .map(|v| v.evaluate(data_store, user_fns).unwrap().to_string())
                     .collect();
                 println!("{}", expr_strings.join(" "));
+                None
+            }
+            BuiltIns::Printa(args) => {
+                let as_string: String = args.iter()
+                    .map(|v| std::char::from_u32(v.evaluate(data_store, user_fns).unwrap() as u32).unwrap())
+                    .collect();
+                println!("{}", as_string);
                 None
             }
         }

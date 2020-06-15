@@ -18,3 +18,5 @@ func collatz_depth (n) {
 for x 1 10 {
     print x (collatz_depth x)
 }
+
+printa 100 111 110 101
