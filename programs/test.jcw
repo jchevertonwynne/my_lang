@@ -1,0 +1,14 @@
+func collatz n {
+    res: ? (== 0 (% n 2)) (/ n 2) (+ 1 (* n 3))
+}
+
+func collatz_depth n {
+    while != n 1 {
+        n: collatz n
+        res: + res 1
+    }
+}
+
+for x 1 10 {
+    print (collatz_depth x)
+}

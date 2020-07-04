@@ -1,0 +1,12 @@
+func collatz_depth n {
+    while != n 1 {
+        n: collatz n
+        res: + res 1
+    }
+}
+
+for x 1 10 {
+    print collatz_depth x
+}
+
+printa 100 111 110 101

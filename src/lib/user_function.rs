@@ -2,6 +2,7 @@ use crate::lib::{Program, Expression, DataStore};
 use std::collections::HashMap;
 
 // a function consists of its code and the names of the arguments you can pass it
+#[derive(Debug)]
 pub struct UserFunction<'a> {
     pub code: Program<'a>,
     pub args: Vec<&'a str>,

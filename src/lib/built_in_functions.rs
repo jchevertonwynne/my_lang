@@ -2,6 +2,7 @@ use crate::lib::{DataStore, Expression};
 use std::collections::HashMap;
 use crate::lib::user_function::UserFunction;
 
+#[derive(Debug)]
 pub enum BuiltIns<'a> {
     Add(Expression<'a>, Expression<'a>),
     Sub(Expression<'a>, Expression<'a>),
@@ -14,6 +15,7 @@ pub enum BuiltIns<'a> {
     Gt(Expression<'a>, Expression<'a>),
     Le(Expression<'a>, Expression<'a>),
     Ge(Expression<'a>, Expression<'a>),
+    Ternary(Expression<'a>, Expression<'a>, Expression<'a>),
     Not(Expression<'a>),
     Print(Vec<Expression<'a>>),
     Printa(Vec<Expression<'a>>),
@@ -90,7 +92,7 @@ impl<'a> BuiltIns<'a> {
                             let b = args.remove(0);
                             Some(BuiltIns::Gt(a, b))
                         }
-                        _ => panic!("invalid not equals statement"),
+                        _ => panic!("invalid gt statement"),
                     },
                     "<" => match args.len() {
                         2 => {
@@ -98,7 +100,7 @@ impl<'a> BuiltIns<'a> {
                             let b = args.remove(0);
                             Some(BuiltIns::Lt(a, b))
                         }
-                        _ => panic!("invalid not equals statement"),
+                        _ => panic!("invalid lt statement"),
                     },
                     ">=" => match args.len() {
                         2 => {
@@ -106,7 +108,7 @@ impl<'a> BuiltIns<'a> {
                             let b = args.remove(0);
                             Some(BuiltIns::Ge(a, b))
                         }
-                        _ => panic!("invalid not equals statement"),
+                        _ => panic!("invalid ge statement"),
                     },
                     "<=" => match args.len() {
                         2 => {
@@ -114,7 +116,16 @@ impl<'a> BuiltIns<'a> {
                             let b = args.remove(0);
                             Some(BuiltIns::Le(a, b))
                         }
-                        _ => panic!("invalid not equals statement"),
+                        _ => panic!("invalid le statement"),
+                    },
+                    "?" => match args.len() {
+                        3 => {
+                            let a = args.remove(0);
+                            let b = args.remove(0);
+                            let c = args.remove(0);
+                            Some(BuiltIns::Ternary(a, b, c))
+                        }
+                        _ => panic!("invalid ternary"),
                     },
                     "!" => match args.len() {
                         1 => Some(BuiltIns::Not(args.remove(0))),
@@ -191,6 +202,15 @@ impl<'a> BuiltIns<'a> {
                 let i = i.evaluate(data_store, user_fns).unwrap();
                 let j = j.evaluate(data_store, user_fns).unwrap();
                 Some(if i <= j { 1 } else { 0 })
+            }
+            BuiltIns::Ternary(a, b, c) => {
+                let expr = a.evaluate(data_store, user_fns).unwrap();
+                if expr != 0 {
+                    Some(b.evaluate(data_store, user_fns).unwrap())
+                }
+                else {
+                    Some(c.evaluate(data_store, user_fns).unwrap())
+                }
             }
             BuiltIns::Not(i) => {
                 let i = i.evaluate(data_store, user_fns).unwrap();

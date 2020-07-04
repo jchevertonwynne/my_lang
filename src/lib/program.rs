@@ -6,12 +6,14 @@ use regex::Regex;
 use crate::lib::{Construct, DataStore, Expression};
 use crate::lib::user_function::UserFunction;
 
+#[derive(Debug)]
 pub enum Line<'a> {
     Assignment(&'a str, Expression<'a>),
     Expression(Expression<'a>),
     Construct(Construct<'a>),
 }
 
+#[derive(Debug)]
 pub struct Program<'a> {
     program: Vec<Line<'a>>,
 }
@@ -19,7 +21,7 @@ pub struct Program<'a> {
 impl<'a> Program<'a> {
     pub fn from_lines(lines: &mut Iter<&'a str>, user_fns: &mut HashMap<&'a str, UserFunction<'a>>) -> Program<'a> {
         let assignment_regex = Regex::new(r"^([a-z_]+): (.+)$").unwrap();
-        let fn_regex = Regex::new(r"^func ([a-z_]+) \((.+)\) \{$").unwrap();
+        let fn_regex = Regex::new(r"^func ([a-z_]+) (.+) \{$").unwrap();
 
         let mut program = Vec::new();
 

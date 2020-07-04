@@ -4,6 +4,7 @@ use crate::lib::{BuiltIns, DataStore};
 use crate::lib::user_function::UserFunction;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub enum Expression<'a> {
     Literal(i64),
     Variable(&'a str),
@@ -72,6 +73,10 @@ impl<'a> Expression<'a> {
                 CLOSE_BRACKET => brackets -= 1,
                 SPACE => {
                     if brackets == 0 {
+                        if bytes[start] == OPEN_BRACKET && bytes[end] == CLOSE_BRACKET {
+                            start += 1;
+                            end -= 1;
+                        }
                         let expr = Expression::parse(&args[start..end], user_fns).unwrap();
                         res.push(expr);
                         start = end;
@@ -98,9 +103,7 @@ impl<'a> Expression<'a> {
         let last = expr.chars().last().unwrap();
         if first == '(' && last == ')' {
             expr = &expr[1..expr.len() - 1];
-            return expr.trim();
         }
-
         expr.trim()
     }
 }

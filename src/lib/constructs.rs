@@ -6,6 +6,7 @@ use crate::lib::{DataStore, Expression, Program, get_sub_program};
 use crate::lib::user_function::UserFunction;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub enum Construct<'a> {
     If(Expression<'a>, Program<'a>),
     While(Expression<'a>, Program<'a>),
