@@ -42,10 +42,7 @@ impl<'a> Expression<'a> {
     pub fn evaluate(&self, data_store: &mut DataStore<'a>) -> Option<i64> {
         match self {
             Expression::Literal(literal) => Some(*literal),
-            Expression::Variable(variable) => {
-                let val = data_store.get(variable);
-                Some(*val.unwrap())
-            }
+            Expression::Variable(variable) => data_store.get(variable),
             Expression::BuiltInFunction(operation) => operation.apply(data_store),
             Expression::UserFunction(_func, _args) => {
                 panic!("optimisation step should remove str functions");
@@ -125,7 +122,6 @@ impl<'a> Expression<'a> {
                 Expression::AppliedUserFunction(func , args)
             }
         }
-        
     }
 }
 

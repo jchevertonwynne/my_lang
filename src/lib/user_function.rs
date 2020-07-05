@@ -19,13 +19,12 @@ impl<'a> UserFunction<'a> {
         function_data_store.put("res", 0);
         // get arg values from outer program and load into user function with arg names
         self.args.iter().zip(vars)
-            .for_each(|(k, v)| {
-                let val = v.evaluate(data_store).unwrap();
+            .for_each(|(k, val)| {
+                let val = val.evaluate(data_store).unwrap();
                 function_data_store.put(k, val);
             });
         self.code.run_with(&mut function_data_store);
-        let result = *function_data_store.get("res").unwrap();
-        Some(result)
+        function_data_store.get("res")
     }
 
     pub fn optimise(&'a self, user_fns: &'a HashMap<&'a str, UserFunction<'a>>) -> UserFunction<'a> {
