@@ -57,30 +57,38 @@ impl<'a> Construct<'a> {
     }
 
     // do what the if/while/for does
-    pub fn apply(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) {
+    pub fn apply(&self, data_store: &mut DataStore<'a>) {
         match self {
             Construct::If(expr, sub) => {
-                if Expression::evaluate(expr, data_store, user_fns).unwrap() != 0 {
-                    sub.run_with(data_store, user_fns);
+                if Expression::evaluate(expr, data_store).unwrap() != 0 {
+                    sub.run_with(data_store);
                 }
             }
             Construct::While(expr, sub) => {
-                while Expression::evaluate(expr, data_store, user_fns).unwrap() != 0 {
-                    sub.run_with(data_store, user_fns);
+                while Expression::evaluate(expr, data_store).unwrap() != 0 {
+                    sub.run_with(data_store);
                 }
             }
             // for loop may have a newly declared loop var, so mak data store note that it may 
             // be able to be deleted. run the loop, then remove it if not declared prior to this loop
             Construct::For(var, start, end, sub) => {
                 data_store.expand();
-                let start = Expression::evaluate(start, data_store, user_fns).unwrap();
-                let end = Expression::evaluate(end, data_store, user_fns).unwrap();
+                let start = Expression::evaluate(start, data_store).unwrap();
+                let end = Expression::evaluate(end, data_store).unwrap();
                 for i in start..end {
                     data_store.put(*var, i);
-                    sub.run_with(data_store, user_fns);
+                    sub.run_with(data_store);
                 }
                 data_store.contract();
             }
+        }
+    }
+
+    pub fn optimise(&'a self, user_fns: &'a HashMap<&'a str, UserFunction<'a>>) -> Construct<'a> {
+        match self {
+            Construct::If(exp, prog) => Construct::If(exp.optimise(user_fns), prog.optimise(user_fns)),
+            Construct::While(exp, prog) => Construct::While(exp.optimise(user_fns), prog.optimise(user_fns)),
+            Construct::For(var, start, end, prog) => Construct::For(var, start.optimise(user_fns), end.optimise(user_fns), prog.optimise(user_fns))
         }
     }
 }

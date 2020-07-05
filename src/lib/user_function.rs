@@ -10,7 +10,7 @@ pub struct UserFunction<'a> {
 
 impl<'a> UserFunction<'a> {
     // 
-    pub fn apply(&self, vars: &Vec<Expression<'a>>, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
+    pub fn apply(&self, vars: &Vec<Expression<'a>>, data_store: &mut DataStore<'a>) -> Option<i64> {
         if self.args.len() != vars.len() {
             panic!("please don't give me the wrong number of arguments")
         }
@@ -20,11 +20,18 @@ impl<'a> UserFunction<'a> {
         // get arg values from outer program and load into user function with arg names
         self.args.iter().zip(vars)
             .for_each(|(k, v)| {
-                let val = v.evaluate(data_store, user_fns).unwrap();
+                let val = v.evaluate(data_store).unwrap();
                 function_data_store.put(k, val);
             });
-        self.code.run_with(&mut function_data_store, user_fns);
+        self.code.run_with(&mut function_data_store);
         let result = *function_data_store.get("res").unwrap();
         Some(result)
+    }
+
+    pub fn optimise(&'a self, user_fns: &'a HashMap<&'a str, UserFunction<'a>>) -> UserFunction<'a> {
+        UserFunction{
+            code: self.code.optimise(user_fns),
+            args: self.args.clone()
+        }
     }
 }

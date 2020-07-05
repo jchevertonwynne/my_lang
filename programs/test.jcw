@@ -9,6 +9,8 @@ func collatz_depth n {
     }
 }
 
-for x 1 10 {
-    print (collatz_depth x)
+tot: 0
+for x 1 100000 {
+    tot: + tot (collatz_depth x)
 }
+print tot

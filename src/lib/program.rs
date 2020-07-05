@@ -74,27 +74,42 @@ impl<'a> Program<'a> {
         }
     }
 
-    pub fn start(&self, user_fns: &HashMap<&'a str, UserFunction<'a>>) {
-        self.run_with(&mut DataStore::new(), user_fns);
+    pub fn start(&self) {
+        self.run_with(&mut DataStore::new());
     }
 
-    pub fn run_with(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) {
+    pub fn run_with(&self, data_store: &mut DataStore<'a>) {
         data_store.expand();
         for line in self.program.iter() {
             match line {
                 Line::Assignment(var, exp) => {
-                    let val = exp.evaluate(data_store, user_fns).unwrap();
+                    let val = exp.evaluate(data_store).unwrap();
                     data_store.put(var, val);
                 }
                 Line::Expression(exp) => {
-                    exp.evaluate(data_store, user_fns);
+                    exp.evaluate(data_store);
                 }
                 Line::Construct(cons) => {
-                    cons.apply(data_store, user_fns);
+                    cons.apply(data_store);
                 }
             }
         }
         data_store.contract();
+    }
+
+    pub fn optimise(&'a self, user_fns: &'a HashMap<&'a str, UserFunction<'a>>) -> Program<'a> {
+        let mut new_program = Vec::new();
+        for line in &self.program {
+            let fixed = match line {
+                Line::Assignment(var_name, exp) => Line::Assignment(var_name, exp.optimise(user_fns)),
+                Line::Expression(exp) => Line::Expression(exp.optimise(user_fns)),
+                Line::Construct(cons) => Line::Construct(cons.optimise(user_fns))
+            };
+            new_program.push(fixed);
+        }
+        Program {
+            program: new_program
+        }
     }
 }
 

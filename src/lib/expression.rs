@@ -9,7 +9,8 @@ pub enum Expression<'a> {
     Literal(i64),
     Variable(&'a str),
     BuiltInFunction(Box<BuiltIns<'a>>),
-    UserFunction(&'a str, Vec<Expression<'a>>)
+    UserFunction(&'a str, Vec<Expression<'a>>),
+    AppliedUserFunction(&'a UserFunction<'a>, Vec<Expression<'a>>)
 }
 
 impl<'a> Expression<'a> {
@@ -38,17 +39,19 @@ impl<'a> Expression<'a> {
     }
 
     // take an expression and find its value
-    pub fn evaluate(&self, data_store: &mut DataStore<'a>, user_fns: &HashMap<&'a str, UserFunction<'a>>) -> Option<i64> {
+    pub fn evaluate(&self, data_store: &mut DataStore<'a>) -> Option<i64> {
         match self {
             Expression::Literal(literal) => Some(*literal),
             Expression::Variable(variable) => {
                 let val = data_store.get(variable);
                 Some(*val.unwrap())
             }
-            Expression::BuiltInFunction(operation) => operation.apply(data_store, user_fns),
-            Expression::UserFunction(func, args) => {
-                let func = user_fns.get(func).unwrap();
-                func.apply(args, data_store, user_fns)
+            Expression::BuiltInFunction(operation) => operation.apply(data_store),
+            Expression::UserFunction(_func, _args) => {
+                panic!("optimisation step should remove str functions");
+            }
+            Expression::AppliedUserFunction(func, args) => {
+                func.apply(args, data_store)
             }
         }
     }
@@ -105,6 +108,24 @@ impl<'a> Expression<'a> {
             expr = &expr[1..expr.len() - 1];
         }
         expr.trim()
+    }
+
+    pub fn optimise(&'a self, user_fns: &'a HashMap<&'a str, UserFunction<'a>>) -> Expression<'a> {
+        match self {
+            Expression::Literal(i) => Expression::Literal(*i),
+            Expression::Variable(var) => Expression::Variable(var),
+            Expression::BuiltInFunction(func) => Expression::BuiltInFunction(Box::from(func.optimise(user_fns))),
+            Expression::UserFunction(f_name, args) => {
+                let func = user_fns.get(f_name).unwrap();
+                let args = args.iter().map(|arg| arg.optimise(user_fns)).collect();
+                Expression::AppliedUserFunction(func, args)
+            }
+            Expression::AppliedUserFunction(func , args) => {
+                let args = args.iter().map(|arg| arg.optimise(user_fns)).collect();
+                Expression::AppliedUserFunction(func , args)
+            }
+        }
+        
     }
 }
 
